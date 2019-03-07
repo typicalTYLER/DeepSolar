@@ -20,9 +20,9 @@ Summary of available functions:
  inference: Compute inference on the model inputs to make a prediction
  loss: Compute the loss of the prediction with respect to the labels
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
+
+
 
 import re
 import sys
@@ -170,6 +170,6 @@ def _activation_summary(x):
 
 def _activation_summaries(endpoints):
   with tf.name_scope('summaries'):
-    for act in endpoints.values():
+    for act in list(endpoints.values()):
       _activation_summary(act)
 

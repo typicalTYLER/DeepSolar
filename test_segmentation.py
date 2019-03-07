@@ -47,7 +47,7 @@ def load_image(path):
 
 def rescale_CAM(classmap_val):
     # rescale class activation map to [0, 1].
-    CAM_rescale = map(lambda x: ((x - x.min()) / (x.max() - x.min())), classmap_val)
+    CAM_rescale = [((x - x.min()) / (x.max() - x.min())) for x in classmap_val]
     CAM_rescale = CAM_rescale[0]
     return CAM_rescale
 
@@ -57,7 +57,7 @@ def generate_eval_set():
     try:
         with open('test_set_list', 'r') as f:
             eval_set_list = pickle.load(f)
-        print('Eval set size: ' + str(len(eval_set_list)))
+        print(('Eval set size: ' + str(len(eval_set_list))))
     except:
         raise EnvironmentError('Data list not existed. Please run generate_data_list.py first.')
 
@@ -102,7 +102,7 @@ def test():
 
         # Construct saver
         variables_to_restore = tf.get_collection(slim.variables.VARIABLES_TO_RESTORE)
-        print variables_to_restore
+        print(variables_to_restore)
         saver1 = tf.train.Saver(variables_to_restore)
         saver2 = tf.train.Saver(var_list=[W, kernel2, biases2, kernel1, biases1])
 
@@ -111,14 +111,14 @@ def test():
             checkpoint1 = tf.train.get_checkpoint_state(FLAGS.classification_ckpt_restore_dir)
             if checkpoint1 and checkpoint1.model_checkpoint_path:
                 saver1.restore(sess, checkpoint1.model_checkpoint_path)
-                print("Successfully loaded:", checkpoint1.model_checkpoint_path)
+                print(("Successfully loaded:", checkpoint1.model_checkpoint_path))
             else:
                 print("Could not find old network weights")
 
             checkpoint2 = tf.train.get_checkpoint_state(FLAGS.segmentation_ckpt_restore_dir)
             if checkpoint2 and checkpoint2.model_checkpoint_path:
                 saver2.restore(sess, checkpoint2.model_checkpoint_path)
-                print("Successfully loaded:", checkpoint2.model_checkpoint_path)
+                print(("Successfully loaded:", checkpoint2.model_checkpoint_path))
             else:
                 print("Could not find old network weights")
 
@@ -131,14 +131,14 @@ def test():
 
             # store both true and estimate total pixel areas for each region
             true_total_area = {}
-            for i in xrange(1, 66):
+            for i in range(1, 66):
                 true_total_area[i] = 0.0
             estimiate_total_area = {}
-            for i in xrange(1, 66):
+            for i in range(1, 66):
                 estimiate_total_area[i] = 0.0
 
-            for step in xrange(1, len(eval_set_queue)+1):
-                print ('Processing '+str(step)+'/'+str(len(eval_set_queue))+'...')
+            for step in range(1, len(eval_set_queue)+1):
+                print(('Processing '+str(step)+'/'+str(len(eval_set_queue))+'...'))
                 img_path, label, region_index, img_index, region_type = eval_set_queue.pop()
                 img = load_image(img_path)
                 img_batch = np.reshape(img, [1, IMAGE_SIZE, IMAGE_SIZE, 3])
@@ -199,14 +199,14 @@ def test():
             recall_d = float(stats['d'][0]) / float(stats['d'][0] + stats['d'][2] + + 0.00000001)
 
             print ('############ RESULTS ############')
-            print ('Residential: precision: ' + str(precision_r) + ' recall: ' + str(recall_r) +
-                   ' average absolute error rate: ' + str(abs_error_rate_r))
-            print ('Commercial: precision: ' + str(precision_d) + ' recall: ' + str(recall_d) +
-                   ' average absolute error rate: ' + str(abs_error_rate_d))
+            print(('Residential: precision: ' + str(precision_r) + ' recall: ' + str(recall_r) +
+                   ' average absolute error rate: ' + str(abs_error_rate_r)))
+            print(('Commercial: precision: ' + str(precision_d) + ' recall: ' + str(recall_d) +
+                   ' average absolute error rate: ' + str(abs_error_rate_d)))
 
             # save csv for region-level comparison of true total area and estimated total area.
             result_list = []
-            for i in xrange(1, 66):
+            for i in range(1, 66):
                 result_list.append([i, true_total_area[i], estimiate_total_area[i],
                                    float(estimiate_total_area[i] - true_total_area[i])/float(true_total_area[i])])
             with open(os.path.join("region_level_area_estimation.csv"), 'wb') as f:

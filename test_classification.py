@@ -41,7 +41,7 @@ def generate_eval_set():
     try:
         with open('test_set_list', 'r') as f:
             eval_set_list = pickle.load(f)
-        print('Eval set size: ' + str(len(eval_set_list)))
+        print(('Eval set size: ' + str(len(eval_set_list))))
     except:
         raise EnvironmentError('Data list not existed. Please run generate_data_list.py first.')
 
@@ -80,14 +80,14 @@ def test():
             stats['d'] = [0, 0, 0]  # [TP, FP, FN] for downtown/commercial.
 
             # initialize the result
-            for ind in xrange(1, 66):
+            for ind in range(1, 66):
                 result_list.append([ind, 0, 0, 0, 0]) #[region_index, TP, TN, FP, FN]
 
-            for step in xrange(1, 936):
+            for step in range(1, 936):
                 start_time = time.time()
                 # load data
                 minibatch = []
-                for count in xrange(0, BATCH_SIZE):
+                for count in range(0, BATCH_SIZE):
                     element = eval_set_queue.pop()
                     minibatch.append(element)
 
@@ -104,7 +104,7 @@ def test():
 
                 pos_score = np.exp(score[:, 1])/(np.exp(score[:, 1])+np.exp(score[:, 0]))
 
-                for i in xrange(BATCH_SIZE):
+                for i in range(BATCH_SIZE):
                     if label_list[i][0] == 1 and pos_score[i] >= THRESHOLD: #TP
                         result_list[index_list[i]-1][1] += 1
                         stats[type_list[i]][0] += 1
@@ -122,7 +122,7 @@ def test():
 
                 duration = time.time() - start_time
 
-                print("Batch " + str(step) + ", Duration: " + str(duration)+ "s, # images left: " + str(len(eval_set_queue)))
+                print(("Batch " + str(step) + ", Duration: " + str(duration)+ "s, # images left: " + str(len(eval_set_queue))))
 
             # write csv
             with open(os.path.join("eval_result.csv"), 'wb') as f:
@@ -139,8 +139,8 @@ def test():
             recall_d = float(stats['d'][0]) / float(stats['d'][0] + stats['d'][2] + + 0.00000001)
 
             print ('############ RESULTS ############')
-            print ('Residential: precision: ' + str(precision_r) + ' recall: '+str(recall_r))
-            print ('Commercial: precision: ' + str(precision_d) + ' recall: ' + str(recall_d))
+            print(('Residential: precision: ' + str(precision_r) + ' recall: '+str(recall_r)))
+            print(('Commercial: precision: ' + str(precision_d) + ' recall: ' + str(recall_d)))
             print ('See region level analysis in eval_result.csv')
 
 if __name__ == '__main__':

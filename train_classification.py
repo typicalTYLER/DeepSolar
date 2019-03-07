@@ -83,7 +83,7 @@ def train():
     train_set_queue = deque(train_set_list)
     train_set_size = len(train_set_list)
     del train_set_list
-    print ('Training set built. Size: '+str(train_set_size))
+    print(('Training set built. Size: '+str(train_set_size)))
 
     # build the tensorflow graph.
     with tf.Graph().as_default() as g:
@@ -190,7 +190,7 @@ def train():
             checkpoint = tf.train.get_checkpoint_state(FLAGS.ckpt_restore_dir)
             if checkpoint and checkpoint.model_checkpoint_path:
                 saver.restore(sess, checkpoint.model_checkpoint_path)
-                print("Successfully loaded:", checkpoint.model_checkpoint_path)
+                print(("Successfully loaded:", checkpoint.model_checkpoint_path))
             else:
                 print("Could not find old network weights")
         else:
@@ -198,8 +198,8 @@ def train():
                 slim.variables.VARIABLES_TO_RESTORE)
             restorer = tf.train.Saver(variables_to_restore)
             restorer.restore(sess, FLAGS.pretrained_model_checkpoint_path)
-            print('%s: Pre-trained model restored from %s' %
-                  (datetime.now(), FLAGS.pretrained_model_checkpoint_path))
+            print(('%s: Pre-trained model restored from %s' %
+                  (datetime.now(), FLAGS.pretrained_model_checkpoint_path)))
 
         summary_writer = tf.summary.FileWriter(
             FLAGS.ckpt_save_dir,
@@ -210,7 +210,7 @@ def train():
             start_time = time.time()
             # construct image batch and label batch for one step train
             minibatch = []
-            for count in xrange(0, BATCH_SIZE):
+            for count in range(0, BATCH_SIZE):
                 element = train_set_queue.pop()
                 minibatch.append(element)
                 train_set_queue.appendleft(element)
@@ -238,8 +238,8 @@ def train():
                 format_str = ('%s: step %d, loss = %.2f (%.1f examples/sec; %.3f '
                               'sec/batch)')
 
-                print(format_str % (datetime.now(), step, loss_value,
-                                    examples_per_sec, sec_per_batch))
+                print((format_str % (datetime.now(), step, loss_value,
+                                    examples_per_sec, sec_per_batch)))
 
             # shuttle the image list per epoch
             if step % num_batches_per_epoch == 0:

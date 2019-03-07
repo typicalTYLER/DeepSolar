@@ -73,7 +73,7 @@ def train():
     train_set_queue = deque(train_set_list)
     train_set_size = len(train_set_list)
     del train_set_list
-    print ('Training set built. Size: '+str(train_set_size))
+    print(('Training set built. Size: '+str(train_set_size)))
 
     # build the tensorflow graph
     with tf.Graph().as_default() as g:
@@ -133,7 +133,7 @@ def train():
         checkpoint1 = tf.train.get_checkpoint_state(FLAGS.classification_ckpt_restore_dir)
         if checkpoint1 and checkpoint1.model_checkpoint_path:
             restorer1.restore(sess, checkpoint1.model_checkpoint_path)
-            print("Successfully loaded:", checkpoint1.model_checkpoint_path)
+            print(("Successfully loaded:", checkpoint1.model_checkpoint_path))
         else:
             print("Could not find old network weights")
 
@@ -143,7 +143,7 @@ def train():
             checkpoint2 = tf.train.get_checkpoint_state(FLAGS.ckpt_restore_dir)
             if checkpoint2 and checkpoint2.model_checkpoint_path:
                 restorer2.restore(sess, checkpoint2.model_checkpoint_path)
-                print("Successfully loaded:", checkpoint2.model_checkpoint_path)
+                print(("Successfully loaded:", checkpoint2.model_checkpoint_path))
             else:
                 print("Could not find old network weights")
 
@@ -153,7 +153,7 @@ def train():
             start_time = time.time()
             # construct image batch and label batch for one step train.
             minibatch = []
-            for count in xrange(0, BATCH_SIZE):
+            for count in range(0, BATCH_SIZE):
                 element = train_set_queue.pop()
                 minibatch.append(element)
                 train_set_queue.appendleft(element)
@@ -181,8 +181,8 @@ def train():
                 format_str = ('%s: step %d, loss = %.2f (%.1f examples/sec; %.3f '
                               'sec/batch)')
 
-                print(format_str % (datetime.now(), step, loss_value,
-                                    examples_per_sec, sec_per_batch))
+                print((format_str % (datetime.now(), step, loss_value,
+                                    examples_per_sec, sec_per_batch)))
 
             # Save the model checkpoint periodically.
             if step == 1 or step % 1000 == 0:
