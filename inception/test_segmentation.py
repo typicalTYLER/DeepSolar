@@ -55,7 +55,7 @@ def generate_eval_set():
     # load all train data and return a deque contains all images
     # and corresponding labels.
     try:
-        with open('test_set_list', 'r') as f:
+        with open('test_set_list.pickle', 'rb') as f:
             eval_set_list = pickle.load(f)
         print(('Eval set size: ' + str(len(eval_set_list))))
     except:

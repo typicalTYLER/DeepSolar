@@ -65,7 +65,7 @@ def train():
     # load train set list and transform it to queue. For time concern, we recommmend use a subset of training set
     # to fine-tune the segmentation branch.
     try:
-        with open('train_set_list.pickle', 'r') as f:
+        with open('train_set_list.pickle', 'rb') as f:
             train_set_list = pickle.load(f)
     except:
         raise EnvironmentError('Data list not existed. Please run generate_data_list.py first.')

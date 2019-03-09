@@ -27,7 +27,7 @@ for i in range(1, 46091):
 
 random.shuffle(train_set_list)
 
-with open('train_set_list.pickle', 'w') as f:
+with open('train_set_list.pickle', 'wb') as f:
     pickle.dump(train_set_list, f)
 
 print(('Train set list done. # positive samples: '+str(pos_num)+' # negative samples: '+str(neg_num)))
@@ -53,7 +53,7 @@ for i in range(1, 12761):
     val_set_list.append((img_path, [1]))
     pos_num += 1
 
-with open('val_set_list.pickle', 'w') as f:
+with open('val_set_list.pickle', 'wb') as f:
     pickle.dump(val_set_list, f)
 
 print(('Validation set list done. # positive samples: '+str(pos_num)+' # negative samples: '+str(neg_num)))
@@ -85,7 +85,7 @@ for index in range(1, 66):
         pos_num += 1
         test_set_list.append((img_path, [1], index, i, region_type))
 
-with open('test_set_list.pickle', 'w') as f:
+with open('test_set_list.pickle', 'wb') as f:
     pickle.dump(test_set_list, f)
 
 print(('Test set list done. # positive samples: '+str(pos_num)+' # negative samples: '+str(neg_num)))

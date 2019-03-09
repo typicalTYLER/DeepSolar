@@ -39,7 +39,7 @@ def generate_eval_set():
     # load all train data and return a deque contains all images
     # and corresponding labels.
     try:
-        with open('test_set_list', 'r') as f:
+        with open('test_set_list.pickle', 'rb') as f:
             eval_set_list = pickle.load(f)
         print(('Eval set size: ' + str(len(eval_set_list))))
     except:
@@ -61,7 +61,7 @@ def test():
 
         saver = tf.train.Saver(tf.all_variables())
 
-        ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
+        ckpt = tf.train.get_checkpoint_state(FLAGS.ckpt_dir)
 
         sess = tf.Session(config=tf.ConfigProto(
             log_device_placement=True))
@@ -105,18 +105,18 @@ def test():
                 pos_score = np.exp(score[:, 1])/(np.exp(score[:, 1])+np.exp(score[:, 0]))
 
                 for i in range(BATCH_SIZE):
-                    if label_list[i][0] == 1 and pos_score[i] >= THRESHOLD: #TP
+                    if label_list[i][0] == 1 and pos_score[i] >= THRESHOLD:  # TP
                         result_list[index_list[i]-1][1] += 1
                         stats[type_list[i]][0] += 1
 
-                    elif label_list[i][0] == 1 and pos_score[i] < THRESHOLD: # FN
+                    elif label_list[i][0] == 1 and pos_score[i] < THRESHOLD:  # FN
                         result_list[index_list[i]-1][4] += 1
                         stats[type_list[i]][2] += 1
 
-                    elif label_list[i][0] == 0 and pos_score[i] < THRESHOLD: # TN
+                    elif label_list[i][0] == 0 and pos_score[i] < THRESHOLD:  # TN
                         result_list[index_list[i]-1][2] += 1
 
-                    elif label_list[i][0] == 0 and pos_score[i] >= THRESHOLD: # FP
+                    elif label_list[i][0] == 0 and pos_score[i] >= THRESHOLD:  # FP
                         result_list[index_list[i]-1][3] += 1
                         stats[type_list[i]][1] += 1
 

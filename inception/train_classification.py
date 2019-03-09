@@ -75,7 +75,7 @@ def load_image(path):
 def train():
     # load train set list and transform it to queue.
     try:
-        with open('train_set_list.pickle', 'r') as f:
+        with open('train_set_list.pickle', 'rb') as f:
             train_set_list = pickle.load(f)
     except:
         raise EnvironmentError('Data list not existed. Please run generate_data_list.py first.')
@@ -172,7 +172,7 @@ def train():
                             batchnorm_updates_op)
 
         # Create a saver.
-        saver = tf.train.Saver(tf.all_variables())
+        saver = tf.train.Saver(tf.global_variables())
 
         # Build the summary operation from the last tower summaries.
         summary_op = tf.summary.merge_all()
