@@ -97,7 +97,7 @@ def test():
         W_c = tf.gather(tf.transpose(W), 1)
         W_c = tf.reshape(W_c, [-1, 512, 1])
         conv_map_resized = tf.reshape(conv_map_resized, [-1, 100 * 100, 512])
-        CAM = tf.batch_matmul(conv_map_resized, W_c)
+        CAM = tf.matmul(conv_map_resized, W_c)
         CAM = tf.reshape(CAM, [-1, 100, 100])
 
         # Construct saver
@@ -138,7 +138,8 @@ def test():
                 estimiate_total_area[i] = 0.0
 
             for step in range(1, len(eval_set_queue)+1):
-                print(('Processing '+str(step)+'/'+str(len(eval_set_queue))+'...'))
+                if step % 1000 == 0:
+                    print(('Processing '+str(step)+'/'+str(len(eval_set_queue))+'...'))
                 img_path, label, region_index, img_index, region_type = eval_set_queue.pop()
                 img = load_image(img_path)
                 img_batch = np.reshape(img, [1, IMAGE_SIZE, IMAGE_SIZE, 3])
@@ -164,8 +165,8 @@ def test():
                         skimage.io.imsave(os.path.join(RESULT_DIR, 'TP', str(region_index) + '_' + str(img_index) + '_original.png'),img)
                         skimage.io.imsave(os.path.join(RESULT_DIR, 'TP', str(region_index) + '_' + str(img_index) + '_CAM.png'), img)
                         # compare with ground truth segmentation.
-                        true_seg_img = skimage.io.imread(os.path.join(FLAGS.eval_set_dir, str(region_index), str(img_index)+'_true_seg.png'))
-                        true_seg_img /= 255.0
+                        true_seg_img = skimage.io.imread(os.path.join(FLAGS.eval_set_dir, str(region_index), '1', str(img_index)+'_true_seg.png'))
+                        true_seg_img = np.true_divide(true_seg_img, 255.0, casting='unsafe')
                         true_pixel_area = np.sum(true_seg_img)
                         true_pixel_area = true_pixel_area * (100 * 100) / (320 * 320)
                         true_total_area[region_index] += true_pixel_area
@@ -175,8 +176,8 @@ def test():
                     if label == [1]:  # FN
                         stats[region_type][2] += 1
                         true_seg_img = skimage.io.imread(
-                            os.path.join(FLAGS.eval_set_dir, str(region_index), str(img_index) + '_true_seg.png'))
-                        true_seg_img /= 255.0
+                            os.path.join(FLAGS.eval_set_dir, str(region_index), '1', str(img_index) + '_true_seg.png'))
+                        true_seg_img = np.true_divide(true_seg_img, 255.0, casting='unsafe')
                         true_pixel_area = np.sum(true_seg_img)
                         true_pixel_area = true_pixel_area * (100 * 100) / (320 * 320)
                         true_total_area[region_index] += true_pixel_area
@@ -193,10 +194,10 @@ def test():
             abs_error_rate_d = float(abs_error_sum_d) / float(len(area_error['d']))
 
             precision_r = float(stats['r'][0]) / float(stats['r'][0] + stats['r'][1] + 0.00000001)
-            recall_r = float(stats['r'][0]) / float(stats['r'][0] + stats['r'][2] + + 0.00000001)
+            recall_r = float(stats['r'][0]) / float(stats['r'][0] + stats['r'][2] + 0.00000001)
 
             precision_d = float(stats['d'][0]) / float(stats['d'][0] + stats['d'][1] + 0.00000001)
-            recall_d = float(stats['d'][0]) / float(stats['d'][0] + stats['d'][2] + + 0.00000001)
+            recall_d = float(stats['d'][0]) / float(stats['d'][0] + stats['d'][2] + 0.00000001)
 
             print ('############ RESULTS ############')
             print(('Residential: precision: ' + str(precision_r) + ' recall: ' + str(recall_r) +
@@ -208,8 +209,8 @@ def test():
             result_list = []
             for i in range(1, 66):
                 result_list.append([i, true_total_area[i], estimiate_total_area[i],
-                                   float(estimiate_total_area[i] - true_total_area[i])/float(true_total_area[i])])
-            with open(os.path.join("region_level_area_estimation.csv"), 'wb') as f:
+                                   float(estimiate_total_area[i] - true_total_area[i])/(float(true_total_area[i])+0.00000001)])
+            with open(os.path.join("region_level_area_estimation.csv"), 'w') as f:
                 writer = csv.writer(f)
                 writer.writerow(['region', 'true pixel area', 'estimiated pixel area', 'relative difference'])
                 writer.writerows(result_list)

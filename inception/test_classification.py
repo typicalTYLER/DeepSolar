@@ -125,7 +125,7 @@ def test():
                 print(("Batch " + str(step) + ", Duration: " + str(duration)+ "s, # images left: " + str(len(eval_set_queue))))
 
             # write csv
-            with open(os.path.join("eval_result.csv"), 'wb') as f:
+            with open(os.path.join("eval_result.csv"), 'w') as f:
                 writer = csv.writer(f)
                 writer.writerow(['region', 'TP', 'TN', 'FP', 'FN'])
                 writer.writerows(result_list)

@@ -13,9 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 """Build the Inception v3 network on ImageNet data set.
-
 The Inception v3 architecture is described in http://arxiv.org/abs/1512.00567
-
 Summary of available functions:
  inference: Compute inference on the model inputs to make a prediction
  loss: Compute the loss of the prediction with respect to the labels
@@ -25,12 +23,16 @@ from __future__ import division
 from __future__ import print_function
 
 import re
+import sys
 
 import tensorflow as tf
 
 from inception.slim import slim
 
 FLAGS = tf.app.flags.FLAGS
+
+# imblanced rate = alpha + 1 (loss penalty on minority class)
+ALPHA = 9
 
 # If a model is trained using multiple GPUs, prefix all Op names with tower_name
 # to differentiate the operations. Note that this prefix is removed from the
@@ -48,9 +50,7 @@ MOVING_AVERAGE_DECAY = 0.9999
 def inference(images, num_classes, for_training=False, restore_logits=True,
               scope=None):
   """Build Inception v3 model architecture.
-
   See here for reference: http://arxiv.org/abs/1512.00567
-
   Args:
     images: Images returned from inputs() or distorted_inputs().
     num_classes: number of classes
@@ -60,7 +60,6 @@ def inference(images, num_classes, for_training=False, restore_logits=True,
     restore_logits: whether or not the logits layers should be restored.
       Useful for fine-tuning a model with different num_classes.
     scope: optional prefix string identifying the ImageNet tower.
-
   Returns:
     Logits. 2-D float Tensor.
     Auxiliary Logits. 2-D float Tensor of side-head. Used for training only.
@@ -72,6 +71,10 @@ def inference(images, num_classes, for_training=False, restore_logits=True,
       # epsilon to prevent 0s in variance.
       'epsilon': 0.001,
   }
+  # prepocessing
+  images = tf.subtract(images, 0.5)
+  images = tf.multiply(images, 2.0)
+
   # Set weight_decay for weights in Conv and FC layers.
   with slim.arg_scope([slim.ops.conv2d, slim.ops.fc], weight_decay=0.00004):
     with slim.arg_scope([slim.ops.conv2d],
@@ -92,16 +95,16 @@ def inference(images, num_classes, for_training=False, restore_logits=True,
   # Grab the logits associated with the side head. Employed during training.
   auxiliary_logits = endpoints['aux_logits']
 
-  return logits, auxiliary_logits
+  #return logits, auxiliary_logits
+  return logits, auxiliary_logits, endpoints['mixed_35x35x288b']
+
 
 
 def loss(logits, labels, batch_size=None):
   """Adds all losses for the model.
-
   Note the final loss is not returned. Instead, the list of losses are collected
   by slim.losses. The losses are accumulated in tower_loss() and summed to
   calculate the total loss.
-
   Args:
     logits: List of logits from inference(). Each entry is a 2-D float Tensor.
     labels: Labels from distorted_inputs or inputs(). 1-D tensor
@@ -120,16 +123,23 @@ def loss(logits, labels, batch_size=None):
   dense_labels = tf.sparse_to_dense(concated,
                                     [batch_size, num_classes],
                                     1.0, 0.0)
+  # Construct penalty matrix
+  labels = tf.cast(labels, tf.int64)
+  alpha = tf.cast(ALPHA, tf.int64)
+  penalty_vector = tf.add(tf.multiply(alpha, labels), 1)
+  penalty_vector = tf.cast(penalty_vector, tf.float32) # [batch_size, 1]
 
   # Cross entropy loss for the main softmax prediction.
   slim.losses.cross_entropy_loss(logits[0],
                                  dense_labels,
+                                 penalty_vector=penalty_vector,
                                  label_smoothing=0.1,
                                  weight=1.0)
 
   # Cross entropy loss for the auxiliary softmax head.
   slim.losses.cross_entropy_loss(logits[1],
                                  dense_labels,
+                                 penalty_vector=penalty_vector,
                                  label_smoothing=0.1,
                                  weight=0.4,
                                  scope='aux_loss')
@@ -137,10 +147,8 @@ def loss(logits, labels, batch_size=None):
 
 def _activation_summary(x):
   """Helper to create summaries for activations.
-
   Creates a summary that provides a histogram of activations.
   Creates a summary that measure the sparsity of activations.
-
   Args:
     x: Tensor
   """
