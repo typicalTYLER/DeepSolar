@@ -212,7 +212,7 @@ def test():
                                    float(estimiate_total_area[i] - true_total_area[i])/(float(true_total_area[i])+0.00000001)])
             with open(os.path.join("region_level_area_estimation.csv"), 'w') as f:
                 writer = csv.writer(f)
-                writer.writerow(['region', 'true pixel area', 'estimiated pixel area', 'relative difference'])
+                writer.writerow(['region', 'true pixel area', 'estimated pixel area', 'relative difference'])
                 writer.writerows(result_list)
             f.close()
 

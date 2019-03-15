@@ -57,7 +57,7 @@ def test():
     with tf.Graph().as_default() as g:
         img_placeholder = tf.placeholder(tf.float32, shape=[BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, 3])
 
-        logits, _ = inception.inference(img_placeholder, NUM_CLASSES)
+        logits, _, _ = inception.inference(img_placeholder, NUM_CLASSES)
 
         saver = tf.train.Saver(tf.all_variables())
 
@@ -83,6 +83,7 @@ def test():
             for ind in range(1, 66):
                 result_list.append([ind, 0, 0, 0, 0]) #[region_index, TP, TN, FP, FN]
 
+            durations = np.ndarray((1,))
             for step in range(1, 936):
                 start_time = time.time()
                 # load data
@@ -121,8 +122,9 @@ def test():
                         stats[type_list[i]][1] += 1
 
                 duration = time.time() - start_time
+                durations = np.append(durations, [duration/BATCH_SIZE])
 
-                print(("Batch " + str(step) + ", Duration: " + str(duration)+ "s, # images left: " + str(len(eval_set_queue))))
+                print(("Batch " + str(step) + ", Duration: " + str(duration) + "s, Running Avg Inference/s: " + str(1/durations.mean()) + "inf/s # images left: " + str(len(eval_set_queue))))
 
             # write csv
             with open(os.path.join("eval_result.csv"), 'w') as f:
