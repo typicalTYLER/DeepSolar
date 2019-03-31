@@ -7,6 +7,7 @@ third-party implementation of the DeepSolar model, it would need to be reworked
 a bit.
 """
 
+import skimage.transform
 import tensorflow as tf
 
 from inception import inception_model as inception
@@ -17,7 +18,7 @@ class Predictor():
     """Predict using the DeepSolar paper model"""
 
     def __init__(self, dirpath_classification_checkpoint,
-                 dirpath_segmentation_checkpoint, image_size=299,
+                 dirpath_segmentation_checkpoint=None, image_size=299,
                  num_classes=2):
         """Init
 
@@ -96,9 +97,6 @@ class Predictor():
             name='W', shape=[512, 2],
             initializer=tf.random_normal_initializer(0., 0.01)
         )
-        # TODO: Should we just make this self.image_size x self.image_size?
-        # Whether we interpolate to (self.image_size, self.image_size) now or
-        # in a post-processing step, the result should probably be the same.
         conv_aux2_resized = tf.image.resize_bilinear(conv_aux2, [100, 100])
 
         class_weights = tf.gather(tf.transpose(random_normal_weights), 1)
@@ -150,7 +148,10 @@ class Predictor():
         logits_op, _, feature_map_op = inception.inference(
             image_placeholder, self.num_classes
         )
-        segment_op = self._build_segment_op(feature_map_op)
+        if self.dirpath_segmentation_checkpoint:
+            segment_op = self._build_segment_op(feature_map_op)
+        else:
+            segment_op = None
         classification_prob_op = tf.nn.softmax(logits_op)
 
         variables_to_restore = tf.get_collection(
@@ -164,14 +165,28 @@ class Predictor():
 
         return image_placeholder, classification_prob_op, segment_op
 
-    def segment(self, image):
+    def segment(self, image, target_shape=None):
         """Segment solar panels on the provided image
 
         :param image: pixel data to segment
         :type image: numpy.ndarray
+        :param target_shape: (height, width) to reshape the
+         segmentation map to before returning it; defaults to the (100, 100)
+         used in the DeepSolar model
+        :type target_shape: tuple(int)
         :return: segmented pixel data
         :rtype: boolean numpy.ndarray
         """
+
+        if self.segment_op is None:
+            msg = (
+                'self.segment_op is None, which means that a '
+                'dirpath_segmentation_checkpoint was not passed into'
+                'the __init__. To segment images, a '
+                'dirpath_segmentation_checkpoint must be passed into the '
+                '__init__.'
+            )
+            raise RuntimeError(msg)
 
         segmentation = self.sess.run(
             self.segment_op, feed_dict={self.input_placeholder: image}
@@ -180,4 +195,9 @@ class Predictor():
             (segmentation - segmentation.min()) /
             (segmentation.max() - segmentation.min())
         )
+
+        if target_shape:
+            segmentation_rescaled = skimage.transform.resize(
+                segmentation_rescaled, target_shape
+            )
         return segmentation_rescaled
